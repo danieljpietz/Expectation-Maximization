@@ -55,6 +55,19 @@ def one_hot_encode(classes=None, garbage=False):
         X_test = np.delete(X_test, test_bad_inds, axis=0)
 
 
-def load_and_encode(classes=None, garbage=False):
+def binary_encode(classes):
+    global labels_binary_train, labels_binary_test
+    labels_binary_train = np.zeros((np.size(labels_train), 1))
+    labels_binary_test = np.zeros((np.size(labels_test), 1))
+    labels_binary_train[labels_train == classes[0]] = 1
+    labels_binary_train[labels_train == classes[1]] = -1
+    labels_binary_train = labels_binary_train[labels_binary_train != 0]
+
+    labels_binary_test[labels_test == classes[0]] = 1
+    labels_binary_test[labels_test == classes[1]] = -1
+    labels_binary_test = labels_binary_test[labels_binary_test != 0]
+
+
+def load_and_encode(classes=None):
     load_dataset()
-    one_hot_encode(classes, garbage)
+    binary_encode(classes)
