@@ -5,7 +5,6 @@ def get_random_psd(n):
     return np.dot(x, x.transpose())
 
 def get_synthetic_data(n, d):
-    n = 1200
     X1 = np.random.multivariate_normal(np.random.rand(1, d)[0], get_random_psd(d), n)
     X2 = np.random.multivariate_normal(np.random.rand(1, d)[0], get_random_psd(d), n)
     labels = np.concatenate((np.zeros((n, 1)), np.ones((n, 1))))
