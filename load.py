@@ -1,16 +1,30 @@
 import numpy as np
 from mnist import MNIST
 
+X_train = None
+X_test = None
+labels_train = None
+labels_test = None
+d = None
+n_train = None
+n_test = None
+labels_train_mat = None
+labels_test_mat = None
+n_train = None
+n_test = None
+labels_binary_train = None
+labels_binary_test = None
 
 # Load the data from the local MNIST path
 def load_dataset():
-    global X_train, X_test, labels_train, labels_test, d
+    global X_train, X_test, labels_train, labels_test, d, n_train, n_test
     mndata = MNIST('MNIST')
     d = 784
     X_train, labels_train = map(np.array, mndata.load_training())
     X_test, labels_test = map(np.array, mndata.load_testing())
     X_train = X_train / 255.0
     X_test = X_test / 255.0
+
 
 def one_hot_encode(classes=None, garbage=False):
     global labels_train_mat, labels_test_mat, X_train, X_test, labels_train, labels_test, d
@@ -56,18 +70,27 @@ def one_hot_encode(classes=None, garbage=False):
 
 
 def binary_encode(classes):
-    global labels_binary_train, labels_binary_test
+    global labels_binary_train, labels_binary_test, X_train, X_test
     labels_binary_train = np.zeros((np.size(labels_train), 1))
     labels_binary_test = np.zeros((np.size(labels_test), 1))
     labels_binary_train[labels_train == classes[0]] = 1
     labels_binary_train[labels_train == classes[1]] = -1
+    X_train = X_train[tuple((labels_binary_train != 0).transpose().tolist())]
     labels_binary_train = labels_binary_train[labels_binary_train != 0]
 
     labels_binary_test[labels_test == classes[0]] = 1
     labels_binary_test[labels_test == classes[1]] = -1
+    X_test = X_test[tuple((labels_binary_test != 0).transpose().tolist())]
     labels_binary_test = labels_binary_test[labels_binary_test != 0]
+    labels_binary_train = np.reshape(labels_binary_train, (np.size(labels_binary_train), 1))
+
+    labels_binary_train = np.reshape(labels_binary_train, (np.size(labels_binary_train), 1))
+    labels_binary_test = np.reshape(labels_binary_test, (np.size(labels_binary_test), 1))
 
 
 def load_and_encode(classes=None):
+    global n_train, n_test
     load_dataset()
     binary_encode(classes)
+    n_train = np.size(X_train, 1)
+    n_test = np.size(X_test, 1)
