@@ -14,7 +14,7 @@ synthetic = True
 
 if synthetic:
     # Feature count
-    ld.d = 15
+    ld.d = 10
     # Data point count
     n = 12000
     data, labels = get_synthetic_data(n, ld.d)
@@ -33,12 +33,12 @@ cov2 = np.eye(ld.d)
 params = [phi1, mean1, mean2, cov1, cov2]
 
 if synthetic:
-    forecasts, _, _, _ = train.EM(data, params)
+    labels_predicted, _, _ = train.EM(data, params)
 else:
-    forecasts, _, _, _ = train.EM(ld.X_train, params)
+    labels_predicted, _, _ = train.EM(ld.X_train, params)
 
 # Check against true labels
-res = forecasts == np.squeeze(labels)
+res = labels_predicted == np.squeeze(labels)
 
 # Since we never look at our labels, they can be flipped
 # so both 0% and 100% are perfect fits. Thus, we

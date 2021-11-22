@@ -2,43 +2,50 @@ import numpy as np
 from scipy.special import logsumexp
 from scipy import stats
 
-def expectation_step(x, params):
-    log_p_y_x = np.log([1-np.squeeze(params[0]), np.squeeze(params[0])])[np.newaxis, ...] + \
-                np.log([stats.multivariate_normal(np.squeeze(params[1]), np.squeeze(params[3])).pdf(x),
-            stats.multivariate_normal(np.squeeze(params[2]), np.squeeze(params[4])).pdf(x)]).T
-    log_p_y_x_norm = logsumexp(log_p_y_x, axis=1, keepdims=True)
-    return np.squeeze(log_p_y_x_norm), np.squeeze(np.exp(log_p_y_x - log_p_y_x_norm))
+stop_cond = 10 ** -4
 
-def maximization_step(x, params):
-    total_count = x.shape[0]
-    _, heuristics = expectation_step(x, params)
-    heuristic0 = heuristics[:, 0]
-    heuristic1 = heuristics[:, 1]
-    sum_heuristic1 = np.sum(heuristic1)
-    sum_heuristic0 = np.sum(heuristic0)
-    phi = (sum_heuristic1/total_count)
-    mu0 = (heuristic0[..., np.newaxis].T.dot(x)/sum_heuristic0).flatten()
-    mu1 = (heuristic1[..., np.newaxis].T.dot(x)/sum_heuristic1).flatten()
-    diff0 = x - mu0
-    sigma0 = diff0.T.dot(diff0 * heuristic0[..., np.newaxis]) / sum_heuristic0
-    diff1 = x - mu1
-    sigma1 = diff1.T.dot(diff1 * heuristic1[..., np.newaxis]) / sum_heuristic1
-    params = [phi,  mu0, mu1, sigma0, sigma1]
+
+def expectation_step(X, params):
+    log_likelihood = np.log([1 - np.squeeze(params[0]), np.squeeze(params[0])])[np.newaxis, ...] + \
+           np.log([stats.multivariate_normal(np.squeeze(params[1]), np.squeeze(params[3])).pdf(X),
+                   stats.multivariate_normal(np.squeeze(params[2]), np.squeeze(params[4])).pdf(X)]).T
+    l_l_normalized = logsumexp(log_likelihood, axis=1, keepdims=True)
+    return np.squeeze(l_l_normalized), np.squeeze(np.exp(log_likelihood - l_l_normalized))
+
+
+def maximization_step(X, params):
+    _, heuristics = expectation_step(X, params)
+    heuristic0_sum = np.sum(heuristics[:, 0])
+    heuristic1_sum = np.sum(heuristics[:, 1])
+    phi = np.mean(heuristic1_sum/heuristics.shape[0])
+    mean0 = np.dot(heuristics[:, 0][np.newaxis, ...], X) / heuristic0_sum
+    mean1 = np.dot(heuristics[:, 1][np.newaxis, ...], X) / heuristic1_sum
+    diff0 = X - mean0
+    var0 = diff0.T @ (diff0 * heuristics[:, 0][..., np.newaxis]) / heuristic0_sum
+    diff1 = X - mean1
+    var1 = diff1.T @ (diff1 * heuristics[:, 1][..., np.newaxis]) / heuristic1_sum
+    params = [phi, mean0, mean1, var0, var1]
     return params
 
-def get_avg_log_likelihood(x, params):
-    loglikelihood, _ = expectation_step(x, params)
-    return np.mean(loglikelihood)
 
-def EM(x, params):
-    avg_loglikelihoods = []
+def EM(X, params):
+    avg_likely = []
+    current = 0
+    stop_filter = 0.95
     while True:
-        avg_loglikelihood = get_avg_log_likelihood(x, params)
-        avg_loglikelihoods.append(avg_loglikelihood)
-        if len(avg_loglikelihoods) > 2 and abs(avg_loglikelihoods[-1] - avg_loglikelihoods[-2]) < 0.0001:
-            break
-        params = maximization_step(x, params)
-    _, posterior = expectation_step(x, params)
-    forecasts = np.argmax(posterior, axis=1)
-    return forecasts, posterior, avg_loglikelihoods, params
+        likelihood, _ = expectation_step(X, params)
+        avg_likelihood = np.mean(likelihood)
+        avg_likely.append(avg_likelihood)
+        params = maximization_step(X, params)
+        if len(avg_likely) == 1:
+            current = avg_likely[-1]
+        else:
+            last = current
+            current = (stop_filter * current) + (1 - stop_filter) * avg_likely[-1]
+            if abs(current - last) < stop_cond:
+                break
+        params = maximization_step(X, params)
+    _, posterior = expectation_step(X, params)
+    labels_predicted = np.argmax(posterior, axis=1)
+    return labels_predicted, avg_likely, params
     pass
