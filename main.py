@@ -1,6 +1,10 @@
 import load as ld
 import train
 from helpers import *
+import numpy as np
+from matplotlib import pyplot as plt
+import seaborn as sb
+
 
 # Load in the MNIST Data, classes are the 2 numbers we want to distinguish
 # So in this case we are looking at ones and zeros
@@ -14,9 +18,9 @@ synthetic = True
 
 if synthetic:
     # Feature count
-    ld.d = 10
+    ld.d = 2
     # Data point count
-    n = 12000
+    n = 300
     data, labels = get_synthetic_data(n, ld.d)
 else:
     data = ld.X_train
@@ -33,9 +37,9 @@ cov2 = np.eye(ld.d)
 params = [phi1, mean1, mean2, cov1, cov2]
 
 if synthetic:
-    labels_predicted, _, _ = train.EM(data, params)
+    labels_predicted, likelihoods, _ = train.EM(data, params)
 else:
-    labels_predicted, _, _ = train.EM(ld.X_train, params)
+    labels_predicted, likelihoods, _ = train.EM(ld.X_train, params)
 
 # Check against true labels
 res = labels_predicted == np.squeeze(labels)
@@ -47,3 +51,33 @@ accuracy = 2 * abs(0.5 - (np.count_nonzero(res) / res.shape[0]))
 
 # Print our accuracy.
 print(accuracy)
+
+# Plot our results
+sb.set_theme()
+plt.plot(likelihoods)
+plt.show()
+
+if ld.d == 2:
+    plt.scatter(data[labels == 1].T[0], data[labels == 1].T[1])
+    plt.scatter(data[labels == 0].T[0], data[labels == 0].T[1])
+    plt.show()
+
+    plt.scatter(data[labels_predicted == 1].T[0], data[labels_predicted == 1].T[1])
+    plt.scatter(data[labels_predicted == 0].T[0], data[labels_predicted == 0].T[1])
+    plt.show()
+elif ld.d == 3:
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    plt.scatter(data[labels == 1].T[0], data[labels == 1].T[1], data[labels == 1].T[2])
+    plt.scatter(data[labels == 0].T[0], data[labels == 0].T[1], data[labels == 0].T[2])
+    plt.show()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    plt.scatter(data[labels_predicted == 1].T[0], data[labels_predicted == 1].T[1], data[labels_predicted == 1].T[2])
+    plt.scatter(data[labels_predicted == 0].T[0], data[labels_predicted == 0].T[1], data[labels_predicted == 0].T[2])
+    plt.show()
+
+
+
+

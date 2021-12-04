@@ -4,6 +4,7 @@ def get_random_psd(n):
     x = np.random.normal(0, 1, size=(n, n))
     return np.dot(x, x.transpose())
 
+
 def get_synthetic_data(n, d):
     X1 = np.random.multivariate_normal(np.random.rand(1, d)[0], get_random_psd(d), n)
     X2 = np.random.multivariate_normal(np.random.rand(1, d)[0], get_random_psd(d), n)

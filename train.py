@@ -31,7 +31,7 @@ def maximization_step(X, params):
 def EM(X, params):
     avg_likely = []
     current = 0
-    stop_filter = 0.95
+    stop_filter = 0.5
     while True:
         likelihood, _ = expectation_step(X, params)
         avg_likelihood = np.mean(likelihood)
@@ -42,6 +42,7 @@ def EM(X, params):
         else:
             last = current
             current = (stop_filter * current) + (1 - stop_filter) * avg_likely[-1]
+
             if abs(current - last) < stop_cond:
                 break
         params = maximization_step(X, params)
