@@ -42,7 +42,6 @@ def EM(X, params):
         else:
             last = current
             current = (stop_filter * current) + (1 - stop_filter) * avg_likely[-1]
-
             if abs(current - last) < stop_cond:
                 break
         params = maximization_step(X, params)

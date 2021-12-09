@@ -5,13 +5,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 import seaborn as sb
 
-
 # Load in the MNIST Data, classes are the 2 numbers we want to distinguish
 # So in this case we are looking at ones and zeros
 ld.load_and_encode(classes=[0, 1])
 
 # The SK Learn EM Algorithm for a baseline
-# model = GaussianMixture(n_components=2, max_iter=1000)
+# model = GaussianMixture(n_components=plot_size, max_iter=1000)
 # model.fit(ld.X_train)
 
 synthetic = True
@@ -20,7 +19,7 @@ if synthetic:
     # Feature count
     ld.d = 2
     # Data point count
-    n = 300
+    n = 500
     data, labels = get_synthetic_data(n, ld.d)
 else:
     data = ld.X_train
@@ -52,19 +51,60 @@ accuracy = 2 * abs(0.5 - (np.count_nonzero(res) / res.shape[0]))
 # Print our accuracy.
 print(accuracy)
 
+# Flip our classes for the plot
+if (np.count_nonzero(res) / res.shape[0]) < 0.5:
+    labels = np.logical_not(labels)
+
 # Plot our results
 sb.set_theme()
 plt.plot(likelihoods)
+plt.title("Log Likelihood vs vs Iteration")
+plt.xlabel("Iteration")
+plt.ylabel("Log Likelihood")
+plt.savefig("Plots/LogLikli.png")
 plt.show()
 
 if ld.d == 2:
-    plt.scatter(data[labels == 1].T[0], data[labels == 1].T[1])
-    plt.scatter(data[labels == 0].T[0], data[labels == 0].T[1])
+
+    plot_size = 5
+
+    plt.scatter(data[labels == 1].T[0], data[labels == 1].T[1], s=plot_size)
+    plt.scatter(data[labels == 0].T[0], data[labels == 0].T[1], s=plot_size)
+    plt.title("Ground Truth")
+    plt.xlabel("$x_1$")
+    plt.ylabel("$x_2$")
+    plt.legend(["Class 1", "Class 2"])
+    plt.savefig("Plots/GroundTruth.png")
     plt.show()
 
-    plt.scatter(data[labels_predicted == 1].T[0], data[labels_predicted == 1].T[1])
-    plt.scatter(data[labels_predicted == 0].T[0], data[labels_predicted == 0].T[1])
+    fig = plt.figure()
+    plt.scatter(data[labels_predicted == 1].T[0], data[labels_predicted == 1].T[1], s=plot_size)
+    plt.scatter(data[labels_predicted == 0].T[0], data[labels_predicted == 0].T[1], s=plot_size)
+    plt.title("Predicted Classes")
+    plt.xlabel("$x_1$")
+    plt.ylabel("$x_2$")
+    plt.legend(["Class 1", "Class 2"])
+    x_range = fig.get_axes()[0].get_xlim()
+    y_range = fig.get_axes()[0].get_ylim()
+    plt.savefig("Plots/Predicted.png")
     plt.show()
+
+
+
+    plt.scatter(data[np.logical_and(labels_predicted == 1, labels == 0)].T[0],
+                data[np.logical_and(labels_predicted == 1, labels == 0)].T[1], s=plot_size)
+    plt.scatter(data[np.logical_and(labels_predicted == 0, labels == 1)].T[0],
+                data[np.logical_and(labels_predicted == 0, labels == 1)].T[1], s=plot_size)
+    plt.title("Misclassified Points True Class")
+    plt.xlim(x_range)
+    plt.ylim(y_range)
+    plt.xlabel("$x_1$")
+    plt.ylabel("$x_2$")
+    plt.savefig("Plots/Misclass.png")
+    plt.legend(["Class 1", "Class 2"])
+
+    plt.show()
+
 elif ld.d == 3:
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
@@ -74,8 +114,8 @@ elif ld.d == 3:
 
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
-    plt.scatter(data[labels_predicted == 1].T[0], data[labels_predicted == 1].T[1], data[labels_predicted == 1].T[2])
     plt.scatter(data[labels_predicted == 0].T[0], data[labels_predicted == 0].T[1], data[labels_predicted == 0].T[2])
+    plt.scatter(data[labels_predicted == 1].T[0], data[labels_predicted == 1].T[1], data[labels_predicted == 1].T[2])
     plt.show()
 
 

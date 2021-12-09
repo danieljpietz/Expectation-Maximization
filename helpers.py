@@ -6,8 +6,8 @@ def get_random_psd(n):
 
 
 def get_synthetic_data(n, d):
-    X1 = np.random.multivariate_normal(np.random.rand(1, d)[0], get_random_psd(d), n)
-    X2 = np.random.multivariate_normal(np.random.rand(1, d)[0], get_random_psd(d), n)
+    X1 = np.random.multivariate_normal(np.random.randn(1, d)[0], get_random_psd(d), n)
+    X2 = np.random.multivariate_normal(np.random.randn(1, d)[0], get_random_psd(d), n)
     labels = np.concatenate((np.zeros((n, 1)), np.ones((n, 1))))
     X3 = np.concatenate((X1, X2))
     X3 = np.concatenate((labels, X3), axis=1)
