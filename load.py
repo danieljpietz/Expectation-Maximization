@@ -1,5 +1,5 @@
 import numpy as np
-from mnist import MNIST
+
 
 X_train = None
 X_test = None
@@ -17,6 +17,7 @@ labels_binary_test = None
 
 # Load the data from the local MNIST path
 def load_dataset():
+    from mnist import MNIST
     global X_train, X_test, labels_train, labels_test, d, n_train, n_test
     mndata = MNIST('MNIST')
     d = 784

@@ -28,8 +28,9 @@ def maximization_step(X, params):
     return params
 
 
-def EM(X, params):
+def EM(X, params, labels=None):
     avg_likely = []
+    test_accuracy = []
     current = 0
     stop_filter = 0.5
     while True:
@@ -45,7 +46,17 @@ def EM(X, params):
             if abs(current - last) < stop_cond:
                 break
         params = maximization_step(X, params)
+
+        if len(labels) != 0:
+            # Check against true labels
+            _, posterior = expectation_step(X, params)
+            res = np.argmax(posterior, axis=1) == np.squeeze(labels)
+            # Since we never look at our labels, they can be flipped
+            # so both 0% and 100% are perfect fits. Thus, we
+            # map (0, 0.5) and (0.5, 1) -> (0,1)
+            test_accuracy.append(2 * abs(0.5 - (np.count_nonzero(res) / res.shape[0])))
+
     _, posterior = expectation_step(X, params)
     labels_predicted = np.argmax(posterior, axis=1)
-    return labels_predicted, avg_likely, params
+    return labels_predicted, avg_likely, params, test_accuracy
     pass

@@ -3,15 +3,11 @@ import train
 from helpers import *
 import numpy as np
 from matplotlib import pyplot as plt
-import seaborn as sb
-
-# Load in the MNIST Data, classes are the 2 numbers we want to distinguish
-# So in this case we are looking at ones and zeros
-ld.load_and_encode(classes=[0, 1])
-
-# The SK Learn EM Algorithm for a baseline
-# model = GaussianMixture(n_components=plot_size, max_iter=1000)
-# model.fit(ld.X_train)
+try:
+    import seaborn as sb
+    sb.set_theme()
+except ModuleNotFoundError:
+    pass
 
 synthetic = True
 
@@ -19,9 +15,12 @@ if synthetic:
     # Feature count
     ld.d = 2
     # Data point count
-    n = 500
+    n = 300
     data, labels = get_synthetic_data(n, ld.d)
 else:
+    # Load in the MNIST Data, classes are the 2 numbers we want to distinguish
+    # So in this case we are looking at ones and zeros
+    ld.load_and_encode(classes=[0, 1])
     data = ld.X_train
     labels = np.squeeze(ld.labels_binary_train)
 
@@ -36,7 +35,7 @@ cov2 = np.eye(ld.d)
 params = [phi1, mean1, mean2, cov1, cov2]
 
 if synthetic:
-    labels_predicted, likelihoods, _ = train.EM(data, params)
+    labels_predicted, likelihoods, _, test_accuracy = train.EM(data, params, labels)
 else:
     labels_predicted, likelihoods, _ = train.EM(ld.X_train, params)
 
@@ -56,12 +55,19 @@ if (np.count_nonzero(res) / res.shape[0]) < 0.5:
     labels = np.logical_not(labels)
 
 # Plot our results
-sb.set_theme()
 plt.plot(likelihoods)
 plt.title("Log Likelihood vs vs Iteration")
 plt.xlabel("Iteration")
 plt.ylabel("Log Likelihood")
 plt.savefig("Plots/LogLikli.png")
+plt.show()
+
+
+plt.plot(test_accuracy)
+plt.title("TestAccuracy vs vs Iteration")
+plt.xlabel("Iteration")
+plt.ylabel("Classification Accuracy")
+plt.savefig("Plots/TestAccuracy.png")
 plt.show()
 
 if ld.d == 2:
@@ -100,9 +106,8 @@ if ld.d == 2:
     plt.ylim(y_range)
     plt.xlabel("$x_1$")
     plt.ylabel("$x_2$")
-    plt.savefig("Plots/Misclass.png")
     plt.legend(["Class 1", "Class 2"])
-
+    plt.savefig("Plots/Misclass.png")
     plt.show()
 
 elif ld.d == 3:
